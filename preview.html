@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PND Delivery Address Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+        }
+
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: -1;
+        }
+
+        .background-image {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            opacity: 0.3;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .title-section {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .title-section h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 50px;
+            padding: 8px 8px 8px 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .search-box:focus-within {
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .search-icon {
+            color: #666;
+            margin-right: 12px;
+        }
+
+        #searchInput {
+            flex: 1;
+            border: none;
+            padding: 12px 0;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .add-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .add-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-results {
+            background: white;
+            margin-top: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            max-height: 500px;
+            overflow-y: auto;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-item {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item:hover {
+            background: #f8f9ff;
+        }
+
+        .result-address {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .result-preview {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 8px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .no-results {
+            padding: 40px;
+            text-align: center;
+            color: #999;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .title-section h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-container">
+        <img id="backgroundImage" class="background-image" src="https://images.unsplash.com/photo-1566576721346-d4a3b4eaeb55?w=800" alt="FedEx Ground">
+    </div>
+
+    <div class="main-content">
+        <div class="title-section">
+            <h1 id="displayTitle">PND Delivery Address Guide</h1>
+            <p class="subtitle">Search for delivery addresses and manage location details</p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <svg class="search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Search by address (e.g., 123 Main St, 456 Oak Ave...)" autocomplete="off">
+                <button class="add-button" id="addNewButton" title="Add New Location">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="searchResults" class="search-results hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        // Database
+        const database = {
+            locations: {
+                '123-main-st': {
+                    id: '123-main-st',
+                    address: '123 Main Street, Springfield, IL 62701',
+                    houseNumber: '123',
+                    content: [
+                        {
+                            type: 'text',
+                            data: 'This is a residential delivery location. Package should be left at the front door.'
+                        },
+                        {
+                            type: 'text',
+                            data: 'Special instructions: Ring doorbell upon delivery. Customer prefers morning deliveries.'
+                        }
+                    ]
+                },
+                '456-oak-ave': {
+                    id: '456-oak-ave',
+                    address: '456 Oak Avenue, Boston, MA 02101',
+                    houseNumber: '456',
+                    content: [
+                        {
+                            type: 'text',
+                            data: 'Commercial building with reception desk. Packages must be signed for at the front desk during business hours (9 AM - 5 PM).'
+                        }
+                    ]
+                },
+                '789-pine-rd': {
+                    id: '789-pine-rd',
+                    address: '789 Pine Road, Seattle, WA 98101',
+                    houseNumber: '789',
+                    content: [
+                        {
+                            type: 'text',
+                            data: 'Apartment complex - Unit 4B. Use call box at main entrance. Delivery to apartment door preferred.'
+                        },
+                        {
+                            type: 'text',
+                            data: 'Access code: #4321. Valid Mon-Fri 8 AM - 8 PM.'
+                        }
+                    ]
+                },
+                '321-elm-st': {
+                    id: '321-elm-st',
+                    address: '321 Elm Street, Austin, TX 78701',
+                    houseNumber: '321',
+                    content: [
+                        {
+                            type: 'text',
+                            data: 'House with gate. Gate code: 5678. Leave packages inside gate, on covered porch.'
+                        }
+                    ]
+                },
+                '555-maple-dr': {
+                    id: '555-maple-dr',
+                    address: '555 Maple Drive, Denver, CO 80202',
+                    houseNumber: '555',
+                    content: [
+                        {
+                            type: 'text',
+                            data: 'Medical office building. Deliveries accepted at loading dock (rear entrance) between 7 AM - 3 PM.'
+                        }
+                    ]
+                }
+            }
+        };
+
+        const db = {
+            search: function(query) {
+                if (!query || query.trim() === '') return [];
+                
+                const searchTerm = query.toLowerCase().trim();
+                const results = [];
+                
+                for (let key in database.locations) {
+                    const location = database.locations[key];
+                    const addressLower = location.address.toLowerCase();
+                    const houseNumberLower = location.houseNumber.toLowerCase();
+                    
+                    if (houseNumberLower.includes(searchTerm) || addressLower.includes(searchTerm)) {
+                        results.push(location);
+                    }
+                }
+                
+                return results;
+            }
+        };
+
+        // Main Script
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            const addNewButton = document.getElementById('addNewButton');
+            
+            // Search functionality
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+                
+                if (query === '') {
+                    searchResults.classList.add('hidden');
+                    return;
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    performSearch(query);
+                }, 300);
+            });
+            
+            // Add new location
+            addNewButton.addEventListener('click', function() {
+                alert('Add New Location feature:\nIn the full version, this redirects to the detail page where you can create a new delivery location from scratch.');
+            });
+            
+            function performSearch(query) {
+                const results = db.search(query);
+                displayResults(results);
+            }
+            
+            function displayResults(results) {
+                if (results.length === 0) {
+                    searchResults.innerHTML = '<div class="no-results">No matching addresses found</div>';
+                    searchResults.classList.remove('hidden');
+                    return;
+                }
+                
+                let html = '';
+                results.forEach(location => {
+                    const preview = getPreview(location.content);
+                    html += `
+                        <div class="result-item" onclick="goToDetail('${location.id}')">
+                            <div class="result-address">${escapeHtml(location.address)}</div>
+                            ${preview ? `<div class="result-preview">${escapeHtml(preview)}</div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                searchResults.innerHTML = html;
+                searchResults.classList.remove('hidden');
+            }
+            
+            function getPreview(content) {
+                if (!content || content.length === 0) return '';
+                
+                const textBlock = content.find(block => block.type === 'text');
+                if (textBlock && textBlock.data) {
+                    return textBlock.data.length > 150 
+                        ? textBlock.data.substring(0, 150) + '...' 
+                        : textBlock.data;
+                }
+                
+                return 'Click to view details';
+            }
+            
+            window.goToDetail = function(locationId) {
+                alert(`Opening detail page for: ${locationId}\n\nIn the full version, this opens the detail page where you can:\n- View all content (text, images, videos)\n- Edit content with the Edit button\n- Add new content blocks\n- Delete content\n- Save changes`);
+            };
+            
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            // Close search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    if (!addNewButton.contains(e.target)) {
+                        setTimeout(() => {
+                            searchResults.classList.add('hidden');
+                        }, 200);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

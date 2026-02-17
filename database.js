@@ -1,219 +1,200 @@
-// Simulated database - In production, this would be a real database
-const database = {
-    locations: {
-        '123-main-st': {
-            id: '123-main-st',
-            address: '123 Main Street, Springfield, IL 62701',
-            houseNumber: '123',
-            content: [
-                {
-                    type: 'text',
-                    data: 'This is a residential delivery location. Package should be left at the front door.'
-                },
-                {
-                    type: 'text',
-                    data: 'Special instructions: Ring doorbell upon delivery. Customer prefers morning deliveries.'
-                }
-            ]
-        },
-        '456-oak-ave': {
-            id: '456-oak-ave',
-            address: '456 Oak Avenue, Boston, MA 02101',
-            houseNumber: '456',
-            content: [
-                {
-                    type: 'text',
-                    data: 'Commercial building with reception desk. Packages must be signed for at the front desk during business hours (9 AM - 5 PM).'
-                }
-            ]
-        },
-        '789-pine-rd': {
-            id: '789-pine-rd',
-            address: '789 Pine Road, Seattle, WA 98101',
-            houseNumber: '789',
-            content: [
-                {
-                    type: 'text',
-                    data: 'Apartment complex - Unit 4B. Use call box at main entrance. Delivery to apartment door preferred.'
-                },
-                {
-                    type: 'text',
-                    data: 'Access code: #4321. Valid Mon-Fri 8 AM - 8 PM.'
-                }
-            ]
-        },
-        '321-elm-st': {
-            id: '321-elm-st',
-            address: '321 Elm Street, Austin, TX 78701',
-            houseNumber: '321',
-            content: [
-                {
-                    type: 'text',
-                    data: 'House with gate. Gate code: 5678. Leave packages inside gate, on covered porch.'
-                }
-            ]
-        },
-        '555-maple-dr': {
-            id: '555-maple-dr',
-            address: '555 Maple Drive, Denver, CO 80202',
-            houseNumber: '555',
-            content: [
-                {
-                    type: 'text',
-                    data: 'Medical office building. Deliveries accepted at loading dock (rear entrance) between 7 AM - 3 PM.'
-                },
-                {
-                    type: 'text',
-                    data: 'Contact: Reception Desk (555) 123-4567'
-                }
-            ]
-        },
-        '888-birch-ln': {
-            id: '888-birch-ln',
-            address: '888 Birch Lane, Portland, OR 97201',
-            houseNumber: '888',
-            content: [
-                {
-                    type: 'text',
-                    data: 'Residential home with dogs. Please do not open gate. Leave packages outside fence. Customer will retrieve.'
-                }
-            ]
-        },
-        '1001-cedar-ct': {
-            id: '1001-cedar-ct',
-            address: '1001 Cedar Court, Miami, FL 33101',
-            houseNumber: '1001',
-            content: [
-                {
-                    type: 'text',
-                    data: 'Warehouse facility. Use Dock #3 for deliveries. Receiving hours: Mon-Fri 6 AM - 2 PM.'
-                }
-            ]
-        },
-        '2020-willow-way': {
-            id: '2020-willow-way',
-            address: '2020 Willow Way, Phoenix, AZ 85001',
-            houseNumber: '2020',
-            content: [
-                {
-                    type: 'text',
-                    data: 'Gated community. Visitor code: *7890#. Resident name: Johnson. Leave at front door.'
-                }
-            ]
-        }
-    }
-};
+// Supabase Database Operations
+// All methods are async and return Promises
 
-// Database operations
 const db = {
-    // Search addresses by house number or street name
-    search: function(query) {
+    // Table name in Supabase
+    tableName: 'delivery_locations',
+
+    // Search addresses by query string
+    search: async function(query) {
         if (!query || query.trim() === '') return [];
-        
-        const searchTerm = query.toLowerCase().trim();
-        const results = [];
-        
-        for (let key in database.locations) {
-            const location = database.locations[key];
-            const addressLower = location.address.toLowerCase();
-            const houseNumberLower = location.houseNumber.toLowerCase();
-            
-            // Match house number or any part of the address
-            if (houseNumberLower.includes(searchTerm) || addressLower.includes(searchTerm)) {
-                results.push(location);
+
+        try {
+            const searchTerm = query.toLowerCase().trim();
+
+            // Search in address field using case-insensitive LIKE
+            const { data, error } = await supabase
+                .from(this.tableName)
+                .select('*')
+                .or(`address.ilike.%${searchTerm}%`)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Search error:', error);
+                return [];
             }
+
+            // Transform to match expected format
+            return data.map(this.transformFromSupabase);
+        } catch (e) {
+            console.error('Search failed:', e);
+            return [];
         }
-        
-        return results;
     },
-    
+
     // Get location by ID
-    getLocation: function(id) {
-        return database.locations[id] || null;
+    getLocation: async function(id) {
+        try {
+            const { data, error } = await supabase
+                .from(this.tableName)
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                console.error('Get location error:', error);
+                return null;
+            }
+
+            return this.transformFromSupabase(data);
+        } catch (e) {
+            console.error('Get location failed:', e);
+            return null;
+        }
     },
 
     // Find location by exact address match
-    findByAddress: function(address) {
-        const normalizedAddress = address.toLowerCase().trim();
-        for (let key in database.locations) {
-            const location = database.locations[key];
-            if (location.address.toLowerCase().trim() === normalizedAddress) {
-                return location;
+    findByAddress: async function(address) {
+        try {
+            const normalizedAddress = address.toLowerCase().trim();
+
+            const { data, error } = await supabase
+                .from(this.tableName)
+                .select('*')
+                .ilike('address', normalizedAddress)
+                .limit(1);
+
+            if (error) {
+                console.error('Find by address error:', error);
+                return null;
             }
+
+            return data && data.length > 0 ? this.transformFromSupabase(data[0]) : null;
+        } catch (e) {
+            console.error('Find by address failed:', e);
+            return null;
         }
-        return null;
-    },
-    
-    // Generate unique hex ID
-    generateHexId: function() {
-        const timestamp = Date.now().toString(16);
-        const random = Math.random().toString(16).substring(2, 10);
-        return (timestamp + random).substring(0, 16);
     },
 
     // Save or update location
-    saveLocation: function(id, address, content, metadata = {}) {
-        if (!id) {
-            // Generate new hex ID
-            id = this.generateHexId();
+    saveLocation: async function(id, address, content, metadata = {}) {
+        try {
+            // Extract house number from address
+            const houseNumberMatch = address.match(/^\d+/);
+            const houseNumber = houseNumberMatch ? houseNumberMatch[0] : '';
+
+            const locationData = {
+                address: address,
+                location: metadata.location || '',
+                name: metadata.name || '',
+                content: content || [],
+                place_id: metadata.placeId || '',
+                latitude: metadata.lat || null,
+                longitude: metadata.lng || null,
+                updated_at: new Date().toISOString()
+            };
+
+            let result;
+
+            if (id) {
+                // Update existing location
+                const { data, error } = await supabase
+                    .from(this.tableName)
+                    .update(locationData)
+                    .eq('id', id)
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Update location error:', error);
+                    throw error;
+                }
+
+                result = data;
+            } else {
+                // Insert new location
+                const { data, error } = await supabase
+                    .from(this.tableName)
+                    .insert([locationData])
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Insert location error:', error);
+                    throw error;
+                }
+
+                result = data;
+            }
+
+            return this.transformFromSupabase(result);
+        } catch (e) {
+            console.error('Save location failed:', e);
+            throw e;
         }
+    },
+
+    // Delete location
+    deleteLocation: async function(id) {
+        try {
+            const { error } = await supabase
+                .from(this.tableName)
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                console.error('Delete location error:', error);
+                return false;
+            }
+
+            return true;
+        } catch (e) {
+            console.error('Delete location failed:', e);
+            return false;
+        }
+    },
+
+    // Transform Supabase data to app format
+    transformFromSupabase: function(data) {
+        if (!data) return null;
 
         // Extract house number from address
-        const houseNumberMatch = address.match(/^\d+/);
+        const houseNumberMatch = data.address.match(/^\d+/);
         const houseNumber = houseNumberMatch ? houseNumberMatch[0] : '';
 
-        database.locations[id] = {
-            id: id,
-            address: address,
+        return {
+            id: data.id,
+            address: data.address,
             houseNumber: houseNumber,
-            content: content || [],
-            // Store additional metadata from Google Maps if available
-            name: metadata.name || '',
-            location: metadata.location || '',
-            placeId: metadata.placeId || '',
-            lat: metadata.lat || null,
-            lng: metadata.lng || null,
-            createdAt: database.locations[id]?.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            content: data.content || [],
+            name: data.name || '',
+            location: data.location || '',
+            placeId: data.place_id || '',
+            lat: data.latitude || null,
+            lng: data.longitude || null,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at
         };
-
-        // Save to localStorage
-        this.persist();
-
-        return database.locations[id];
     },
-    
-    // Persist to localStorage
-    persist: function() {
+
+    // Get all locations for a specific region (optional helper)
+    getLocationsByRegion: async function(region) {
         try {
-            localStorage.setItem('fedex_locations', JSON.stringify(database.locations));
-        } catch (e) {
-            console.error('Failed to save to localStorage:', e);
-        }
-    },
-    
-    // Load from localStorage
-    load: function() {
-        try {
-            const stored = localStorage.getItem('fedex_locations');
-            if (stored) {
-                database.locations = JSON.parse(stored);
+            const { data, error } = await supabase
+                .from(this.tableName)
+                .select('*')
+                .eq('location', region)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Get locations by region error:', error);
+                return [];
             }
+
+            return data.map(this.transformFromSupabase);
         } catch (e) {
-            console.error('Failed to load from localStorage:', e);
+            console.error('Get locations by region failed:', e);
+            return [];
         }
-    },
-    
-    // Delete location
-    deleteLocation: function(id) {
-        if (database.locations[id]) {
-            delete database.locations[id];
-            this.persist();
-            return true;
-        }
-        return false;
     }
 };
-
-// Load data on initialization
-db.load();

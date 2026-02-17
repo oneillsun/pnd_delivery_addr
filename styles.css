@@ -7,7 +7,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
-    background: linear-gradient(to right, #4D148C 0%, #4D148C 45%, #00830B 55%, #00830B 100%);
+    background: linear-gradient(to right, rgba(255, 102, 0, 0.6) 0%, rgba(255, 102, 0, 0.6) 45%, rgba(77, 20, 140, 0.6) 55%, rgba(77, 20, 140, 0.6) 100%);
     position: relative;
 }
 
@@ -232,7 +232,7 @@ body {
 }
 
 .detail-header {
-    background: linear-gradient(to right, #4D148C 0%, #4D148C 45%, #00830B 55%, #00830B 100%);
+    background: linear-gradient(to right, rgba(255, 102, 0, 0.6) 0%, rgba(255, 102, 0, 0.6) 45%, rgba(77, 20, 140, 0.6) 55%, rgba(77, 20, 140, 0.6) 100%);
     padding: 20px 40px;
     display: flex;
     justify-content: space-between;
@@ -279,7 +279,7 @@ body {
 }
 
 .location-title h1 {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     color: #333;
     margin-bottom: 10px;
 }
@@ -500,4 +500,151 @@ body {
     .cancel-btn {
         width: 100%;
     }
+}
+
+/* Access Code Modal */
+.access-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.access-modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    animation: slideDown 0.3s ease-out;
+}
+
+.access-modal-content h2 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+.access-modal-content p {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+#accessCodeInput {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 24px;
+    text-align: center;
+    letter-spacing: 8px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+}
+
+#accessCodeInput:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+#accessCodeInput::placeholder {
+    font-size: 16px;
+    letter-spacing: normal;
+    font-weight: normal;
+}
+
+.access-modal-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.access-submit-btn,
+.access-cancel-btn {
+    flex: 1;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.access-submit-btn {
+    background: #4caf50;
+    color: white;
+}
+
+.access-submit-btn:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+.access-cancel-btn {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.access-cancel-btn:hover {
+    background: #e0e0e0;
+}
+
+.access-error {
+    color: #f44336;
+    margin-top: 15px;
+    font-weight: 600;
+    animation: shake 0.5s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    75% {
+        transform: translateX(10px);
+    }
+}
+
+/* Page Footer */
+.page-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 15px 20px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+}
+
+.page-footer p {
+    font-style: italic;
+    margin: 0;
 }

@@ -74,6 +74,28 @@
         </div>
     </div>
 
+    <footer class="page-footer">
+        <p>Designed & Developed by AB</p>
+    </footer>
+
+    <!-- Access Code Modal -->
+    <div id="accessModal" class="access-modal" style="display: none;">
+        <div class="access-modal-content">
+            <h2>Admin Access Required</h2>
+            <p>Enter the 5-digit access code to edit this location</p>
+            <input type="password" id="accessCodeInput" maxlength="5" placeholder="Enter access code" autocomplete="off">
+            <div class="access-modal-buttons">
+                <button class="access-submit-btn" onclick="validateAccessCode()">Submit</button>
+                <button class="access-cancel-btn" onclick="closeAccessModal()">Cancel</button>
+            </div>
+            <p id="accessError" class="access-error" style="display: none;">Access denied</p>
+        </div>
+    </div>
+
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="access-config.js"></script>
     <script src="database.js"></script>
     <script src="detail.js"></script>
 </body>

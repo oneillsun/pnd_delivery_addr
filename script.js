@@ -20,6 +20,23 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedLocation = null;
     let selectedRegion = null;
 
+    // Restore previous selection from localStorage
+    const savedLocation = localStorage.getItem('selectedLocation');
+    const savedRegion = localStorage.getItem('selectedRegion');
+
+    if (savedLocation && savedRegion) {
+        // Find and select the previously selected button
+        locationButtons.forEach(button => {
+            if (button.dataset.location === savedLocation) {
+                button.classList.add('selected');
+                selectedLocation = savedLocation;
+                selectedRegion = savedRegion;
+                searchInput.disabled = false;
+                searchInput.placeholder = `Search addresses in ${selectedLocation}...`;
+            }
+        });
+    }
+
     // Location button functionality
     locationButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -34,6 +51,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Store selected location and region
             selectedLocation = this.dataset.location;
             selectedRegion = this.dataset.region;
+
+            // Save to localStorage for persistence
+            localStorage.setItem('selectedLocation', selectedLocation);
+            localStorage.setItem('selectedRegion', selectedRegion);
 
             // Enable search input
             searchInput.disabled = false;
@@ -72,10 +93,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'detail.html?mode=new';
     });
 
-    // Perform search using Google Maps Places API and local database
-    function performSearch(query) {
-        // First, search local database
-        const dbResults = db.search(query);
+    // Perform search using Google Maps Places API and Supabase database
+    async function performSearch(query) {
+        // First, search Supabase database
+        const dbResults = await db.search(query);
 
         if (!placesService || !geocoder) {
             // Only show database results if Google Maps is not available
@@ -143,6 +164,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayCombinedResults(dbResults, googleResults) {
         let html = '';
 
+        // Create a set of saved addresses (normalized to lowercase for comparison)
+        const savedAddresses = new Set(
+            dbResults.map(location => location.address.toLowerCase().trim())
+        );
+
+        // Filter out Google Maps results that are already saved in database
+        const filteredGoogleResults = googleResults.filter(place => {
+            const googleAddress = (place.formatted_address || place.name).toLowerCase().trim();
+            return !savedAddresses.has(googleAddress);
+        });
+
         // Show database results first (saved locations)
         if (dbResults.length > 0) {
             html += '<div style="padding: 10px; background: #e8f5e9; border-bottom: 2px solid #4caf50; font-weight: 600; color: #2e7d32;">📌 Saved Locations</div>';
@@ -157,12 +189,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Show Google Maps results
-        if (googleResults.length > 0) {
+        // Show filtered Google Maps results (excluding duplicates)
+        if (filteredGoogleResults.length > 0) {
             if (dbResults.length > 0) {
                 html += '<div style="padding: 10px; background: #e3f2fd; border-bottom: 2px solid #2196f3; font-weight: 600; color: #1565c0; margin-top: 10px;">🌍 Other Addresses</div>';
             }
-            googleResults.forEach(place => {
+            filteredGoogleResults.forEach(place => {
                 const address = place.formatted_address || place.name;
                 html += `
                     <div class="result-item" onclick="selectGooglePlace('${escapeHtml(place.place_id)}')">

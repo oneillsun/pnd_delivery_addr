@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const locationId = urlParams.get('id');
     const mode = urlParams.get('mode');
-    
+
     if (mode === 'new') {
         // New location mode
         initNewLocation();
@@ -18,13 +18,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // No ID provided, go back
         goBack();
     }
-    
-    // Edit button handler
-    document.getElementById('editButton').addEventListener('click', toggleEditMode);
+
+    // Edit button handler - show access code modal
+    document.getElementById('editButton').addEventListener('click', showAccessModal);
 });
 
 // Initialize new location
-function initNewLocation() {
+async function initNewLocation() {
     // Check if coming from Google Maps search
     const urlParams = new URLSearchParams(window.location.search);
     const fromGoogle = urlParams.get('from') === 'google';
@@ -37,7 +37,7 @@ function initNewLocation() {
                 const placeData = JSON.parse(selectedPlace);
 
                 // Check if this address already exists in the database
-                const existingLocation = db.findByAddress(placeData.address);
+                const existingLocation = await db.findByAddress(placeData.address);
 
                 if (existingLocation) {
                     // Load existing location data
@@ -109,15 +109,15 @@ function promptForAddress() {
 }
 
 // Load location data
-function loadLocation(locationId) {
-    const location = db.getLocation(locationId);
-    
+async function loadLocation(locationId) {
+    const location = await db.getLocation(locationId);
+
     if (!location) {
         alert('Location not found');
         goBack();
         return;
     }
-    
+
     currentLocation = location;
     document.getElementById('locationId').textContent = `ID: ${location.id}`;
     document.getElementById('locationAddress').textContent = location.address;
@@ -277,7 +277,7 @@ window.deleteBlock = function(index) {
 };
 
 // Save content
-window.saveContent = function() {
+window.saveContent = async function() {
     // Update text blocks from textareas
     const textareas = document.querySelectorAll('.block-textarea');
     textareas.forEach(textarea => {
@@ -286,7 +286,7 @@ window.saveContent = function() {
             contentBlocks[index].data = textarea.value;
         }
     });
-    
+
     // Check if address needs to be updated for new locations
     if (!currentLocation.id) {
         const address = document.getElementById('locationAddress').textContent;
@@ -297,7 +297,7 @@ window.saveContent = function() {
             }
         }
     }
-    
+
     // Prepare metadata
     const metadata = {
         name: currentLocation.name || '',
@@ -307,23 +307,28 @@ window.saveContent = function() {
         lng: currentLocation.lng || null
     };
 
-    // Save to database
-    const savedLocation = db.saveLocation(
-        currentLocation.id,
-        currentLocation.address,
-        contentBlocks,
-        metadata
-    );
+    try {
+        // Save to database
+        const savedLocation = await db.saveLocation(
+            currentLocation.id,
+            currentLocation.address,
+            contentBlocks,
+            metadata
+        );
 
-    currentLocation = savedLocation;
+        currentLocation = savedLocation;
 
-    // Update ID display
-    document.getElementById('locationId').textContent = `ID: ${savedLocation.id}`;
+        // Update ID display
+        document.getElementById('locationId').textContent = `ID: ${savedLocation.id}`;
 
-    console.log('Location saved with ID:', savedLocation.id);
+        console.log('Location saved with ID:', savedLocation.id);
 
-    alert('Content saved successfully!');
-    toggleEditMode();
+        alert('Content saved successfully!');
+        toggleEditMode();
+    } catch (error) {
+        console.error('Failed to save location:', error);
+        alert('Failed to save content. Please try again.');
+    }
 };
 
 // Cancel edit
@@ -352,3 +357,78 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// Access Code Modal Functions
+function showAccessModal() {
+    // If already in edit mode, just toggle it off
+    if (isEditMode) {
+        toggleEditMode();
+        return;
+    }
+
+    // Show the access modal
+    const modal = document.getElementById('accessModal');
+    const input = document.getElementById('accessCodeInput');
+    const error = document.getElementById('accessError');
+
+    modal.style.display = 'flex';
+    input.value = '';
+    error.style.display = 'none';
+
+    // Focus on input
+    setTimeout(() => input.focus(), 100);
+
+    // Allow Enter key to submit
+    input.onkeypress = function(e) {
+        if (e.key === 'Enter') {
+            validateAccessCode();
+        }
+    };
+}
+
+window.closeAccessModal = function() {
+    const modal = document.getElementById('accessModal');
+    modal.style.display = 'none';
+};
+
+window.validateAccessCode = function() {
+    const input = document.getElementById('accessCodeInput');
+    const error = document.getElementById('accessError');
+    const enteredCode = input.value.trim();
+
+    // Get the location region
+    const locationRegion = currentLocation.location || '';
+
+    // Check if we have access codes configured
+    if (!window.ACCESS_CODES) {
+        console.error('Access codes not loaded');
+        alert('Access configuration error. Please refresh the page.');
+        return;
+    }
+
+    // Get the correct access code for this region
+    const correctCode = window.ACCESS_CODES[locationRegion];
+
+    if (!correctCode) {
+        console.error('No access code configured for region:', locationRegion);
+        alert('No access code configured for this region.');
+        return;
+    }
+
+    // Validate the entered code
+    if (enteredCode === correctCode) {
+        // Access granted
+        closeAccessModal();
+        toggleEditMode();
+    } else {
+        // Access denied
+        error.style.display = 'block';
+        input.value = '';
+        input.focus();
+
+        // Shake animation is already in CSS
+        setTimeout(() => {
+            error.style.display = 'none';
+        }, 3000);
+    }
+};

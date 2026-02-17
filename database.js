@@ -131,31 +131,55 @@ const db = {
     getLocation: function(id) {
         return database.locations[id] || null;
     },
-    
-    // Save or update location
-    saveLocation: function(id, address, content) {
-        if (!id) {
-            // Generate new ID from address
-            id = address.toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-|-$/g, '')
-                .substring(0, 50);
+
+    // Find location by exact address match
+    findByAddress: function(address) {
+        const normalizedAddress = address.toLowerCase().trim();
+        for (let key in database.locations) {
+            const location = database.locations[key];
+            if (location.address.toLowerCase().trim() === normalizedAddress) {
+                return location;
+            }
         }
-        
+        return null;
+    },
+    
+    // Generate unique hex ID
+    generateHexId: function() {
+        const timestamp = Date.now().toString(16);
+        const random = Math.random().toString(16).substring(2, 10);
+        return (timestamp + random).substring(0, 16);
+    },
+
+    // Save or update location
+    saveLocation: function(id, address, content, metadata = {}) {
+        if (!id) {
+            // Generate new hex ID
+            id = this.generateHexId();
+        }
+
         // Extract house number from address
         const houseNumberMatch = address.match(/^\d+/);
         const houseNumber = houseNumberMatch ? houseNumberMatch[0] : '';
-        
+
         database.locations[id] = {
             id: id,
             address: address,
             houseNumber: houseNumber,
-            content: content || []
+            content: content || [],
+            // Store additional metadata from Google Maps if available
+            name: metadata.name || '',
+            location: metadata.location || '',
+            placeId: metadata.placeId || '',
+            lat: metadata.lat || null,
+            lng: metadata.lng || null,
+            createdAt: database.locations[id]?.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         };
-        
+
         // Save to localStorage
         this.persist();
-        
+
         return database.locations[id];
     },
     

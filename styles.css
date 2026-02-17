@@ -232,7 +232,7 @@ body {
 }
 
 .detail-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(to right, #4D148C 0%, #4D148C 45%, #00830B 55%, #00830B 100%);
     padding: 20px 40px;
     display: flex;
     justify-content: space-between;

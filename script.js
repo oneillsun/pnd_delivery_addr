@@ -1,4 +1,16 @@
 // Landing page script
+let placesService = null;
+let geocoder = null;
+
+// Google Maps initialization callback
+window.initMap = function() {
+    const mapDiv = document.createElement('div');
+    const map = new google.maps.Map(mapDiv);
+    placesService = new google.maps.places.PlacesService(map);
+    geocoder = new google.maps.Geocoder();
+    console.log('Google Maps initialized successfully');
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
@@ -7,16 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let selectedLocation = null;
     let selectedRegion = null;
-    let placesService = null;
-    let geocoder = null;
-
-    // Initialize Google Maps services
-    if (typeof google !== 'undefined') {
-        const mapDiv = document.createElement('div');
-        const map = new google.maps.Map(mapDiv);
-        placesService = new google.maps.places.PlacesService(map);
-        geocoder = new google.maps.Geocoder();
-    }
 
     // Location button functionality
     locationButtons.forEach(button => {
@@ -70,12 +72,14 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'detail.html?mode=new';
     });
 
-    // Perform search using Google Maps Places API
+    // Perform search using Google Maps Places API and local database
     function performSearch(query) {
+        // First, search local database
+        const dbResults = db.search(query);
+
         if (!placesService || !geocoder) {
-            // Fallback to database search if Google Maps is not available
-            const results = db.search(query);
-            displayResults(results);
+            // Only show database results if Google Maps is not available
+            displayResults(dbResults);
             return;
         }
 
@@ -83,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
         searchResults.innerHTML = '<div class="no-results">Searching...</div>';
         searchResults.style.display = 'block';
 
-        // First, geocode the selected region to get its location
+        // Search Google Maps
         geocoder.geocode({ address: selectedRegion }, function(regionResults, status) {
             if (status === 'OK' && regionResults[0]) {
                 const regionLocation = regionResults[0].geometry.location;
@@ -111,45 +115,71 @@ document.addEventListener('DOMContentLoaded', function() {
                             return { ...place, distance };
                         }).sort((a, b) => a.distance - b.distance);
 
-                        displayGoogleMapsResults(sortedResults, regionLocation);
+                        // Display both database and Google Maps results
+                        displayCombinedResults(dbResults, sortedResults, regionLocation);
                     } else {
-                        searchResults.innerHTML = '<div class="no-results">No results found in ' + selectedLocation + '</div>';
-                        searchResults.style.display = 'block';
+                        // Only show database results if Google Maps search fails
+                        if (dbResults.length > 0) {
+                            displayResults(dbResults);
+                        } else {
+                            searchResults.innerHTML = '<div class="no-results">No results found in ' + selectedLocation + '</div>';
+                            searchResults.style.display = 'block';
+                        }
                     }
                 });
             } else {
-                searchResults.innerHTML = '<div class="no-results">Error geocoding location</div>';
-                searchResults.style.display = 'block';
+                // Show database results if geocoding fails
+                if (dbResults.length > 0) {
+                    displayResults(dbResults);
+                } else {
+                    searchResults.innerHTML = '<div class="no-results">Error geocoding location</div>';
+                    searchResults.style.display = 'block';
+                }
             }
         });
     }
     
-    // Display Google Maps results
-    function displayGoogleMapsResults(results, centerLocation) {
-        if (results.length === 0) {
-            searchResults.innerHTML = '<div class="no-results">No matching addresses found in ' + selectedLocation + '</div>';
-            searchResults.style.display = 'block';
-            return;
+    // Display combined results from database and Google Maps
+    function displayCombinedResults(dbResults, googleResults) {
+        let html = '';
+
+        // Show database results first (saved locations)
+        if (dbResults.length > 0) {
+            html += '<div style="padding: 10px; background: #e8f5e9; border-bottom: 2px solid #4caf50; font-weight: 600; color: #2e7d32;">📌 Saved Locations</div>';
+            dbResults.forEach(location => {
+                const preview = getPreview(location.content);
+                html += `
+                    <div class="result-item" onclick="goToDetail('${location.id}')" style="background: #f1f8f4;">
+                        <div class="result-address">${escapeHtml(location.address)}</div>
+                        ${preview ? `<div class="result-preview">${escapeHtml(preview)}</div>` : '<div class="result-preview">Saved delivery location</div>'}
+                    </div>
+                `;
+            });
         }
 
-        let html = '';
-        results.forEach((place, index) => {
-            const distanceKm = (place.distance / 1000).toFixed(1);
-            const distanceMiles = (place.distance / 1609.34).toFixed(1);
-            const address = place.formatted_address || place.name;
-
-            html += `
-                <div class="result-item" onclick="selectGooglePlace('${escapeHtml(place.place_id)}')">
-                    <div class="result-address">${escapeHtml(place.name)}</div>
-                    <div class="result-preview">
-                        ${escapeHtml(address)}<br>
-                        <small style="color: #667eea; font-weight: 600;">📍 ${distanceMiles} miles from ${selectedLocation} center</small>
+        // Show Google Maps results
+        if (googleResults.length > 0) {
+            if (dbResults.length > 0) {
+                html += '<div style="padding: 10px; background: #e3f2fd; border-bottom: 2px solid #2196f3; font-weight: 600; color: #1565c0; margin-top: 10px;">🌍 Other Addresses</div>';
+            }
+            googleResults.forEach(place => {
+                const address = place.formatted_address || place.name;
+                html += `
+                    <div class="result-item" onclick="selectGooglePlace('${escapeHtml(place.place_id)}')">
+                        <div class="result-address">${escapeHtml(place.name)}</div>
+                        <div class="result-preview">
+                            ${escapeHtml(address)}
+                        </div>
                     </div>
-                </div>
-            `;
-        });
+                `;
+            });
+        }
 
-        searchResults.innerHTML = html;
+        if (html === '') {
+            searchResults.innerHTML = '<div class="no-results">No matching addresses found</div>';
+        } else {
+            searchResults.innerHTML = html;
+        }
         searchResults.style.display = 'block';
     }
 

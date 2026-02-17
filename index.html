@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PND Delivery Address Guide</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📍</text></svg>">
     <link rel="stylesheet" href="styles.css">
     <!-- Google Maps API - Replace YOUR_API_KEY with your actual Google Maps API key -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRGmv4-pqLEPBfC7B-eRehlx59Xjr001E&libraries=places,geometry"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRGmv4-pqLEPBfC7B-eRehlx59Xjr001E&libraries=places,geometry&loading=async&callback=initMap"></script>
 </head>
 <body>
     <div class="background-container">
@@ -22,7 +23,7 @@
                 <button class="location-btn" id="btn-arlington" data-location="ARLINGTON" data-region="Arlington, TX">ARLINGTON</button>
                 <button class="location-btn" id="btn-fortworth" data-location="FORT WORTH" data-region="Fort Worth, TX">FORT WORTH</button>
                 <button class="location-btn" id="btn-irving" data-location="IRVING" data-region="Irving, TX">IRVING</button>
-                <button class="location-btn" id="btn-kentucky" data-location="KENTUCKY" data-region="Kentucky, USA">KENTUCKY</button>
+                <button class="location-btn" id="btn-kentucky" data-location="KENTUCKY" data-region="Cincinnati, OH">KENTUCKY</button>
             </div>
         </div>
 
@@ -45,6 +46,10 @@
         </div>
     </div>
 
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-helpers.js"></script>
     <script src="database.js"></script>
     <script src="script.js"></script>
 </body>

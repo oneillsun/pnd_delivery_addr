@@ -25,18 +25,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize new location
 function initNewLocation() {
+    // Check if coming from Google Maps search
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromGoogle = urlParams.get('from') === 'google';
+
+    if (fromGoogle) {
+        // Load data from localStorage
+        const selectedPlace = localStorage.getItem('selectedPlace');
+        if (selectedPlace) {
+            try {
+                const placeData = JSON.parse(selectedPlace);
+
+                // Check if this address already exists in the database
+                const existingLocation = db.findByAddress(placeData.address);
+
+                if (existingLocation) {
+                    // Load existing location data
+                    currentLocation = existingLocation;
+                    document.getElementById('locationId').textContent = `ID: ${existingLocation.id}`;
+                    document.getElementById('locationAddress').textContent = existingLocation.address;
+                    contentBlocks = JSON.parse(JSON.stringify(existingLocation.content || []));
+                    renderContent();
+
+                    console.log('Loaded existing location from database:', existingLocation.id);
+                } else {
+                    // New location
+                    currentLocation = {
+                        id: null,
+                        address: placeData.address,
+                        name: placeData.name,
+                        location: placeData.location,
+                        placeId: placeData.placeId,
+                        lat: placeData.lat,
+                        lng: placeData.lng,
+                        content: []
+                    };
+
+                    // Display the address as the title
+                    document.getElementById('locationAddress').textContent = placeData.address;
+                    document.getElementById('contentContainer').innerHTML = '<p class="empty-state">Click Edit to add delivery instructions and notes for this location</p>';
+
+                    // Automatically enter edit mode
+                    toggleEditMode();
+                }
+
+                // Clear localStorage after using it
+                localStorage.removeItem('selectedPlace');
+
+                return;
+            } catch (error) {
+                console.error('Error parsing selected place data:', error);
+            }
+        }
+    }
+
+    // Default behavior for manual new location
     currentLocation = {
         id: null,
         address: '',
         content: []
     };
-    
+
     document.getElementById('locationAddress').textContent = 'New Delivery Location';
     document.getElementById('contentContainer').innerHTML = '<p class="empty-state">Click Edit to add content for this location</p>';
-    
+
     // Automatically enter edit mode
     toggleEditMode();
-    
+
     // Prompt for address
     promptForAddress();
 }
@@ -64,8 +119,9 @@ function loadLocation(locationId) {
     }
     
     currentLocation = location;
+    document.getElementById('locationId').textContent = `ID: ${location.id}`;
     document.getElementById('locationAddress').textContent = location.address;
-    
+
     contentBlocks = JSON.parse(JSON.stringify(location.content || []));
     renderContent();
 }
@@ -242,15 +298,30 @@ window.saveContent = function() {
         }
     }
     
+    // Prepare metadata
+    const metadata = {
+        name: currentLocation.name || '',
+        location: currentLocation.location || '',
+        placeId: currentLocation.placeId || '',
+        lat: currentLocation.lat || null,
+        lng: currentLocation.lng || null
+    };
+
     // Save to database
     const savedLocation = db.saveLocation(
         currentLocation.id,
         currentLocation.address,
-        contentBlocks
+        contentBlocks,
+        metadata
     );
-    
+
     currentLocation = savedLocation;
-    
+
+    // Update ID display
+    document.getElementById('locationId').textContent = `ID: ${savedLocation.id}`;
+
+    console.log('Location saved with ID:', savedLocation.id);
+
     alert('Content saved successfully!');
     toggleEditMode();
 };

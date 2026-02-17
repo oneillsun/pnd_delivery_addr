@@ -7,7 +7,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(to right, #4D148C 0%, #4D148C 45%, #00830B 55%, #00830B 100%);
     position: relative;
 }
 
@@ -35,7 +35,7 @@ body {
 
 /* Main Content */
 .main-content {
-    max-width: 1200px;
+    width: 45%;
     margin: 0 auto;
     padding: 40px 20px;
 }
@@ -58,6 +58,50 @@ body {
     font-size: 1.2rem;
     opacity: 0.9;
     animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+/* Location Buttons */
+.location-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 30px;
+    animation: fadeInUp 0.8s ease-out 0.3s both;
+}
+
+.location-btn {
+    background: white;
+    color: #333;
+    border: 2px solid white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.location-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    background: #d3d3d3;
+}
+
+.location-btn:active {
+    transform: translateY(-1px);
+}
+
+.location-btn.selected {
+    background: #4caf50;
+    color: white;
+    border-color: #4caf50;
+}
+
+.location-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Search Container */
@@ -93,6 +137,12 @@ body {
     padding: 12px 0;
     font-size: 16px;
     outline: none;
+}
+
+#searchInput:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    color: #999;
 }
 
 .add-button {
@@ -419,6 +469,10 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
+    .main-content {
+        width: 90%;
+    }
+
     .title-section h1 {
         font-size: 2rem;
     }

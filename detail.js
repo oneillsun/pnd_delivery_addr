@@ -198,9 +198,13 @@ function renderBlock(block, index) {
                 content = `
                     <input type="file" accept="image/*" onchange="updateImage(${index}, this)" class="image-upload">
                     ${block.data ? `<img src="${block.data}" alt="Location image">` : '<p>No image selected</p>'}
+                    <textarea class="image-text" data-index="${index}" placeholder="Add image caption or description...">${escapeHtml(block.text || '')}</textarea>
                 `;
             } else {
-                content = block.data ? `<img src="${block.data}" alt="Location image">` : '<p>No image available</p>';
+                content = block.data ? `
+                    <img src="${block.data}" alt="Location image">
+                    ${block.text ? `<p class="image-caption">${escapeHtml(block.text)}</p>` : ''}
+                ` : '<p>No image available</p>';
             }
             break;
             
@@ -209,9 +213,13 @@ function renderBlock(block, index) {
                 content = `
                     <input type="file" accept="video/*" onchange="updateVideo(${index}, this)" class="video-upload">
                     ${block.data ? `<video controls src="${block.data}"></video>` : '<p>No video selected</p>'}
+                    <textarea class="video-text" data-index="${index}" placeholder="Add video caption or description...">${escapeHtml(block.text || '')}</textarea>
                 `;
             } else {
-                content = block.data ? `<video controls src="${block.data}"></video>` : '<p>No video available</p>';
+                content = block.data ? `
+                    <video controls src="${block.data}"></video>
+                    ${block.text ? `<p class="video-caption">${escapeHtml(block.text)}</p>` : ''}
+                ` : '<p>No video available</p>';
             }
             break;
     }
@@ -263,7 +271,8 @@ window.addTextBlock = function() {
 window.addImageBlock = function() {
     contentBlocks.push({
         type: 'image',
-        data: null
+        data: null,
+        text: ''
     });
     renderContent();
 };
@@ -272,7 +281,8 @@ window.addImageBlock = function() {
 window.addVideoBlock = function() {
     contentBlocks.push({
         type: 'video',
-        data: null
+        data: null,
+        text: ''
     });
     renderContent();
 };
@@ -334,6 +344,24 @@ window.saveContent = async function() {
         const index = parseInt(editor.dataset.index);
         if (contentBlocks[index]) {
             contentBlocks[index].data = editor.innerHTML;
+        }
+    });
+
+    // Update image text from textareas
+    const imageTexts = document.querySelectorAll('.image-text');
+    imageTexts.forEach(textarea => {
+        const index = parseInt(textarea.dataset.index);
+        if (contentBlocks[index]) {
+            contentBlocks[index].text = textarea.value;
+        }
+    });
+
+    // Update video text from textareas
+    const videoTexts = document.querySelectorAll('.video-text');
+    videoTexts.forEach(textarea => {
+        const index = parseInt(textarea.dataset.index);
+        if (contentBlocks[index]) {
+            contentBlocks[index].text = textarea.value;
         }
     });
 

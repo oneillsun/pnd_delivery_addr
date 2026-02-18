@@ -347,6 +347,37 @@ body {
     max-width: 800px;
 }
 
+.image-text,
+.video-text {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.image-text:focus,
+.video-text:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.image-caption,
+.video-caption {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    font-style: italic;
+}
+
 .content-text {
     line-height: 1.8;
     color: #333;

@@ -14,7 +14,6 @@ window.initMap = function() {
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
-    const addNewButton = document.getElementById('addNewButton');
     const locationButtons = document.querySelectorAll('.location-btn');
 
     let selectedLocation = null;
@@ -85,12 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
         searchTimeout = setTimeout(() => {
             performSearch(query);
         }, 300);
-    });
-
-    // Add new location button
-    addNewButton.addEventListener('click', function() {
-        // Redirect to detail page in "add new" mode
-        window.location.href = 'detail.html?mode=new';
     });
 
     // Perform search using Google Maps Places API and Supabase database
@@ -294,12 +287,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close search results when clicking outside
     document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-            // Don't hide if clicking add button
-            if (!addNewButton.contains(e.target)) {
-                setTimeout(() => {
-                    searchResults.style.display = 'none';
-                }, 200);
-            }
+            setTimeout(() => {
+                searchResults.style.display = 'none';
+            }, 200);
         }
     });
 });

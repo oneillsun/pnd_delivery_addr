@@ -5,24 +5,33 @@ const db = {
     // Table name in Supabase
     tableName: 'delivery_locations',
 
-    // Search addresses by query string
-    search: async function(query) {
+    // Search addresses by query string and optional region filter
+    search: async function(query, region = null) {
         if (!query || query.trim() === '') return [];
 
         try {
             const searchTerm = query.toLowerCase().trim();
 
-            // Search in address field using case-insensitive LIKE
-            const { data, error } = await supabase
+            // Build query - search in address field using case-insensitive LIKE
+            let queryBuilder = supabase
                 .from(this.tableName)
                 .select('*')
-                .or(`address.ilike.%${searchTerm}%`)
+                .ilike('address', `%${searchTerm}%`);
+
+            // Filter by region if provided
+            if (region) {
+                queryBuilder = queryBuilder.eq('location', region);
+            }
+
+            const { data, error } = await queryBuilder
                 .order('created_at', { ascending: false });
 
             if (error) {
                 console.error('Search error:', error);
                 return [];
             }
+
+            console.log(`Database search: query="${searchTerm}", region="${region}", results=${data.length}`);
 
             // Transform to match expected format
             return data.map(this.transformFromSupabase);

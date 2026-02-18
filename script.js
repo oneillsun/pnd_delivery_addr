@@ -95,8 +95,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Perform search using Google Maps Places API and Supabase database
     async function performSearch(query) {
-        // First, search Supabase database
-        const dbResults = await db.search(query);
+        // First, search Supabase database filtered by selected location
+        const dbResults = await db.search(query, selectedLocation);
 
         if (!placesService || !geocoder) {
             // Only show database results if Google Maps is not available

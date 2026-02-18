@@ -151,10 +151,45 @@ function renderBlock(block, index) {
         case 'text':
             if (isEditMode) {
                 content = `
-                    <textarea class="block-textarea" data-index="${index}">${escapeHtml(block.data || '')}</textarea>
+                    <div class="format-toolbar">
+                        <button type="button" class="format-btn" onclick="formatText(${index}, 'bold')" title="Bold">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                                <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+                            </svg>
+                        </button>
+                        <button type="button" class="format-btn" onclick="formatText(${index}, 'italic')" title="Italic">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="19" y1="4" x2="10" y2="4"/>
+                                <line x1="14" y1="20" x2="5" y2="20"/>
+                                <line x1="15" y1="4" x2="9" y2="20"/>
+                            </svg>
+                        </button>
+                        <button type="button" class="format-btn" onclick="formatText(${index}, 'insertUnorderedList')" title="Bullet List">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <circle cx="3" cy="6" r="1" fill="currentColor"/>
+                                <circle cx="3" cy="12" r="1" fill="currentColor"/>
+                                <circle cx="3" cy="18" r="1" fill="currentColor"/>
+                            </svg>
+                        </button>
+                        <button type="button" class="format-btn" onclick="formatText(${index}, 'insertOrderedList')" title="Numbered List">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="10" y1="6" x2="21" y2="6"/>
+                                <line x1="10" y1="12" x2="21" y2="12"/>
+                                <line x1="10" y1="18" x2="21" y2="18"/>
+                                <path d="M3 5v3M3 8h2"/>
+                                <path d="M3 11v3M3 14h2"/>
+                                <path d="M3 17v3M3 20h2"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="block-editor" contenteditable="true" data-index="${index}">${block.data || ''}</div>
                 `;
             } else {
-                content = `<div class="content-text">${escapeHtml(block.data || '').replace(/\n/g, '<br>')}</div>`;
+                content = `<div class="content-text">${block.data || ''}</div>`;
             }
             break;
             
@@ -276,14 +311,29 @@ window.deleteBlock = function(index) {
     }
 };
 
+// Format text in editor
+window.formatText = function(index, command) {
+    const editor = document.querySelector(`.block-editor[data-index="${index}"]`);
+    if (!editor) return;
+
+    // Focus the editor first
+    editor.focus();
+
+    // Execute the formatting command
+    document.execCommand(command, false, null);
+
+    // Update the content block data immediately
+    contentBlocks[index].data = editor.innerHTML;
+};
+
 // Save content
 window.saveContent = async function() {
-    // Update text blocks from textareas
-    const textareas = document.querySelectorAll('.block-textarea');
-    textareas.forEach(textarea => {
-        const index = parseInt(textarea.dataset.index);
+    // Update text blocks from contenteditable divs
+    const editors = document.querySelectorAll('.block-editor');
+    editors.forEach(editor => {
+        const index = parseInt(editor.dataset.index);
         if (contentBlocks[index]) {
-            contentBlocks[index].data = textarea.value;
+            contentBlocks[index].data = editor.innerHTML;
         }
     });
 

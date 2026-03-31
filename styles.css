@@ -240,8 +240,15 @@ body {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
+.header-right-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
 .back-button,
-.edit-button {
+.edit-button,
+.share-button {
     background: rgba(255, 255, 255, 0.2);
     border: 2px solid white;
     color: white;
@@ -257,7 +264,8 @@ body {
 }
 
 .back-button:hover,
-.edit-button:hover {
+.edit-button:hover,
+.share-button:hover {
     background: white;
     color: #667eea;
 }
@@ -751,6 +759,30 @@ body {
     75% {
         transform: translateX(10px);
     }
+}
+
+/* Share Toast */
+.share-toast {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 9999;
+    white-space: nowrap;
+}
+
+.share-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 /* Page Footer */

@@ -429,6 +429,25 @@ window.goBack = function() {
     window.location.href = 'index.html';
 };
 
+// Share location
+window.shareLocation = function() {
+    const url = window.location.href;
+    const address = document.getElementById('locationAddress').textContent || 'Delivery Location';
+    const title = `FedEx Delivery - ${address}`;
+
+    if (navigator.share) {
+        // Mobile: use native share sheet
+        navigator.share({ title, url }).catch(() => {});
+    } else {
+        // Desktop: copy URL to clipboard
+        navigator.clipboard.writeText(url).then(function() {
+            const toast = document.getElementById('shareToast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        });
+    }
+};
+
 // Escape HTML
 function escapeHtml(text) {
     const div = document.createElement('div');

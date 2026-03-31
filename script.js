@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedRegion = localStorage.getItem('selectedRegion');
 
     if (savedLocation && savedRegion) {
-        // Find and select the previously selected button
         locationButtons.forEach(button => {
             if (button.dataset.location === savedLocation) {
                 button.classList.add('selected');
@@ -34,6 +33,56 @@ document.addEventListener('DOMContentLoaded', function() {
                 searchInput.placeholder = `Search addresses in ${selectedLocation}...`;
             }
         });
+    } else {
+        // No saved selection — auto-detect user location
+        detectUserLocation();
+    }
+
+    // Haversine distance in km between two lat/lng points
+    function haversineDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    // Auto-select the nearest location button based on user's GPS coordinates
+    function selectNearestButton(userLat, userLng) {
+        let nearest = null;
+        let minDistance = Infinity;
+
+        locationButtons.forEach(button => {
+            const lat = parseFloat(button.dataset.lat);
+            const lng = parseFloat(button.dataset.lng);
+            const dist = haversineDistance(userLat, userLng, lat, lng);
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearest = button;
+            }
+        });
+
+        if (nearest) {
+            nearest.click();
+        }
+    }
+
+    // Request user's geolocation and select nearest location
+    function detectUserLocation() {
+        if (!navigator.geolocation) return;
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const { latitude, longitude } = position.coords;
+                selectNearestButton(latitude, longitude);
+            },
+            function() {
+                // User denied or error — do nothing, let them pick manually
+            },
+            { timeout: 8000 }
+        );
     }
 
     // Location button functionality
